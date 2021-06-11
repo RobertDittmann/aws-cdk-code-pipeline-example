@@ -32,7 +32,7 @@ export class PipelineStack extends Stack {
                 artifacts: {
                     'base-directory': 'dist',
                     files: [
-                        'Infrastructure.template.json',
+                        'InfrastructureStack.template.json',
                     ],
                 },
             }),

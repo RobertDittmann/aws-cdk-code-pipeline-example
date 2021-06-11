@@ -1,0 +1,15 @@
+{
+  "name": "celebrieties",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo BUILD",
+    "test": "echo TEST"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-cdk": "1.108.0"
+  }
+}

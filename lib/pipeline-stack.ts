@@ -86,7 +86,7 @@ export class PipelineStack extends Stack {
                             actionName: 'PULL_SOURCE',
                             output: sourceOutput,
                             trigger: GitHubTrigger.POLL,
-                            oauthToken: SecretValue.plainText(props.githubToken)
+                            oauthToken: SecretValue.secretsManager('arn:aws:secretsmanager:eu-west-1:876101868435:secret:RobertDittmannGithubRepoToken-G17pJB')
                         }),
                     ],
                 },

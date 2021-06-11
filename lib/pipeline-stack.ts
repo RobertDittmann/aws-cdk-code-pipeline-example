@@ -47,7 +47,7 @@ export class PipelineStack extends Stack {
                 phases: {
                     install: {
                         commands: [
-                            'cd scr/lambda/celebrities',
+                            'cd src/lambda/celebrities',
                             'npm install',
                         ],
                     },
@@ -56,7 +56,7 @@ export class PipelineStack extends Stack {
                     },
                 },
                 artifacts: {
-                    'base-directory': 'lambdaBuild',
+                    'base-directory': 'src/lambda/celebrities',
                     files: [
                         'endpoint.js',
                         'node_modules/**/*',

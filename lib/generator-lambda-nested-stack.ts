@@ -44,7 +44,6 @@ export class GeneratorLambdaNestedStack extends cdk.NestedStack {
             resources: ['*']
         }));
 
-        // this is to avoid circular dependencies
         lambda.addToRolePolicy(new IAM.PolicyStatement({
             effect: Effect.ALLOW,
             actions: [

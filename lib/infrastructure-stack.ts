@@ -4,7 +4,6 @@ import {DynamodbNestedStack} from "./dynamodb-nested-stack";
 import {EndpointLambdaNestedStack} from "./endpoint-lambda-nested-stack";
 import {GeneratorLambdaNestedStack} from "./generator-lambda-nested-stack";
 import {AgwNestedStack} from "./agw-nested-stack";
-import {GeneratorLambdaNotificationStack} from "./generator-lambda-notification-nested-stack";
 import * as lambda from '@aws-cdk/aws-lambda';
 
 export interface InfrastructureStackProps extends NestedStackProps {
@@ -38,10 +37,10 @@ export class InfrastructureStack extends Stack {
             bucket: s3Stack.bucket,
         });
 
-        new GeneratorLambdaNotificationStack(this, 'GeneratorLambdaNotification', {
-            generatorLambdaIFunction: generatorLambdaStack.generatorLambdaIFunction,
-            bucket: s3Stack.bucket
-        })
+        // new GeneratorLambdaNotificationStack(this, 'GeneratorLambdaNotification', {
+        //     generatorLambdaIFunction: generatorLambdaStack.generatorLambdaIFunction,
+        //     bucket: s3Stack.bucket
+        // })
 
         new AgwNestedStack(this, `Agw`, {
             endpointLambdaIFunction: endpointLambdaStack.endpointLambdaIFunction,

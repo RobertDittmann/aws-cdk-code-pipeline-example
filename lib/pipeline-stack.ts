@@ -115,9 +115,9 @@ export class PipelineStack extends Stack {
                             templatePath: cdkBuildOutput.atPath('InfrastructureStack.template.json'),
                             stackName: 'InfrastructureDeploymentStack',
                             adminPermissions: true,
-                            parameterOverrides: {
-                                ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
-                            },
+                            // parameterOverrides: {
+                            //     ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
+                            // }, // COMMENT OUT TO CHECK
                             extraInputs: [lambdaBuildOutput],
                         }),
                     ],

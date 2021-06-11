@@ -48,7 +48,9 @@ export class PipelineStack extends Stack {
                     install: {
                         commands: [
                             'cd src/lambda/celebrities',
+                            'ls',
                             'npm install',
+                            'ls',
                         ],
                     },
                     build: {

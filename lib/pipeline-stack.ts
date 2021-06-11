@@ -112,7 +112,7 @@ export class PipelineStack extends Stack {
                     actions: [
                         new codepipeline_actions.CloudFormationCreateUpdateStackAction({
                             actionName: 'Infrastructure_CFN_Deploy',
-                            templatePath: cdkBuildOutput.atPath('Infrastructure.template.json'),
+                            templatePath: cdkBuildOutput.atPath('InfrastructureStack.template.json'),
                             stackName: 'InfrastructureDeploymentStack',
                             adminPermissions: true,
                             parameterOverrides: {

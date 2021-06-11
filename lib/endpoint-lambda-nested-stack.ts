@@ -15,6 +15,8 @@ export class EndpointLambdaNestedStack extends cdk.NestedStack {
     constructor(scope: cdk.Construct, id: string, props: EndpointLambdaStackProps) {
         super(scope, id, props);
 
+        this.lambdaCode = lambda.Code.fromCfnParameters();
+
         const lambdaFn = new lambda.Function(this, `LambdaEndpoint`, {
             runtime: lambda.Runtime.NODEJS_14_X,
             handler: 'endpoint.handler',
@@ -26,8 +28,6 @@ export class EndpointLambdaNestedStack extends cdk.NestedStack {
         });
 
         props.table.grantReadData(lambdaFn);
-
-        this.lambdaCode = lambda.Code.fromCfnParameters();
         this.endpointLambdaIFunction = lambdaFn;
     }
 }

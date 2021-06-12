@@ -13,12 +13,13 @@ if (!REPO_TOKEN) {
 
 const app = new cdk.App();
 const infrastructure = new InfrastructureStack(app, `InfrastructureStack`, {
-    stackName: STACK_NAME
+    stackName: STACK_NAME+ '-infra',
+
 });
 
 new PipelineStack(app, 'PipelineStack', {
     githubToken: REPO_TOKEN,
-    stackName: STACK_NAME,
+    stackName: STACK_NAME + '-pipeline',
     lambdaCode: infrastructure.lambdaCode
 });
 

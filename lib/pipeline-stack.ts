@@ -96,7 +96,8 @@ export class PipelineStack extends Stack {
                     build: {
                         commands: [
                             'ls',
-                            'npm run cdk deploy InfrastructureStack'
+                            'npm run cdk deploy InfrastructureStack',
+                            'npm run cdk deploy PipelineStack'
                         ],
                     }
                 }

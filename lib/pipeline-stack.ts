@@ -173,6 +173,12 @@ export class PipelineStack extends Stack {
                             outputs: [lambdaBuildOutput],
                         }),
                         new codepipeline_actions.CodeBuildAction({
+                            actionName: 'Lambda_Build',
+                            project: lambdaBuild,
+                            input: sourceOutput,
+                            outputs: [lambdaBuildOutput],
+                        }),
+                        new codepipeline_actions.CodeBuildAction({
                             actionName: 'Infrastructure_Build',
                             project: cdkBuild,
                             input: sourceOutput,

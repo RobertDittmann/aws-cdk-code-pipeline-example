@@ -48,6 +48,35 @@ export class PipelineStack extends Stack {
             },
         });
 
+
+        const pipelineTemplateBuild = new codebuild.PipelineProject(this, 'pipelineTemplateBuild', {
+            buildSpec: codebuild.BuildSpec.fromObject({
+                version: '0.2',
+                phases: {
+                    install: {
+                        commands: 'npm install',
+                    },
+                    build: {
+                        commands: [
+                            'ls',
+                            'npm run build',
+                            'npm run cdk synth PipelineStack -- -o pipeline_template', // removed " -- -o dist"
+                            'ls'
+                        ],
+                    },
+                },
+                artifacts: {
+                    'base-directory': 'pipeline_template',
+                    files: [
+                        'PipelineStack*'
+                    ],
+                },
+            }),
+            environment: {
+                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+            },
+        });
+
         const lambdaBuild = new codebuild.PipelineProject(this, 'LambdaBuild', {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
@@ -140,32 +169,11 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const pipelineDeploy = new codebuild.PipelineProject(this, 'PipelineDeploy', {
-            buildSpec: codebuild.BuildSpec.fromObject({
-                version: '0.2',
-                phases: {
-                    install: {
-                        commands: 'npm install',
-                    },
-                    build: {
-                        commands: [
-                            'ls',
-                            'npm run cdk synth PipelineStack',
-                            'npm run cdk deploy PipelineStack'
-                        ],
-                    }
-                }
-            }),
-            role: adminDeploy,
-            environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
-            },
-        });
-
         const sourceOutput = new codepipeline.Artifact();
         const cdkBuildOutput = new codepipeline.Artifact('CdkBuildOutput');
         const lambdaBuildOutput = new codepipeline.Artifact('LambdaBuildOutput');
         const lambdaBuildOutput2 = new codepipeline.Artifact('LambdaBuildOutput2');
+        const pipelineBuildOutput = new codepipeline.Artifact('PipelineBuildOutput');
 
 
         const token = secrets.Secret.fromSecretNameV2(this, "ImportedSecret", 'RobertDittmannGithubToken')
@@ -188,13 +196,25 @@ export class PipelineStack extends Stack {
                     ],
                 },
                 {
-                    stageName: 'Pipeline',
+                    stageName: 'Pipeline_build',
                     actions: [
                         new codepipeline_actions.CodeBuildAction({
-                            actionName: 'Pipeline_AWS_CDK_Deploy',
+                            actionName: 'Pipeline_Build',
+                            project: pipelineTemplateBuild,
                             input: sourceOutput,
-                            project: pipelineDeploy
-                        })
+                            outputs: [pipelineBuildOutput],
+                        }),
+                    ],
+                },
+                {
+                    stageName: 'Pipeline_UPDATE',
+                    actions: [
+                        new codepipeline_actions.CloudFormationCreateUpdateStackAction({
+                            actionName: 'Pipeline_UPDATE',
+                            templatePath: pipelineBuildOutput.atPath('PipelineStack.template.json'),
+                            stackName: props.stackName,
+                            adminPermissions: true,
+                        }),
                     ],
                 },
                 {

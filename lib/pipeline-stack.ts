@@ -96,7 +96,28 @@ export class PipelineStack extends Stack {
                     build: {
                         commands: [
                             'ls',
-                            'npm run cdk deploy InfrastructureStack',
+                            'npm run cdk deploy InfrastructureStack'
+                        ],
+                    }
+                }
+            }),
+            role: adminDeploy,
+            environment: {
+                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+            },
+        });
+
+        const pipelineDeploy = new codebuild.PipelineProject(this, 'PipelineDeploy', {
+            buildSpec: codebuild.BuildSpec.fromObject({
+                version: '0.2',
+                phases: {
+                    install: {
+                        commands: 'npm install',
+                    },
+                    build: {
+                        commands: [
+                            'ls',
+                            'npm run cdk synth PipelineStack',
                             'npm run cdk deploy PipelineStack'
                         ],
                     }
@@ -130,6 +151,16 @@ export class PipelineStack extends Stack {
                             trigger: GitHubTrigger.POLL,
                             oauthToken: SecretValue.plainText(token)
                         }),
+                    ],
+                },
+                {
+                    stageName: 'Pipeline',
+                    actions: [
+                        new codepipeline_actions.CodeBuildAction({
+                            actionName: 'Pipeline_AWS_CDK_Deploy',
+                            input: sourceOutput,
+                            project: pipelineDeploy
+                        })
                     ],
                 },
                 {

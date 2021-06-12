@@ -106,27 +106,6 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const pipelineDeploy = new codebuild.PipelineProject(this, 'AwsCDKPipelineDeploy', {
-            buildSpec: codebuild.BuildSpec.fromObject({
-                version: '0.2',
-                phases: {
-                    install: {
-                        commands: 'npm install',
-                    },
-                    build: {
-                        commands: [
-                            'ls',
-                            'npm run cdk deploy PipelineStack'
-                        ],
-                    }
-                }
-            }),
-            role: adminDeploy,
-            environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
-            },
-        });
-
         const sourceOutput = new codepipeline.Artifact();
         const cdkBuildOutput = new codepipeline.Artifact('CdkBuildOutput');
         const lambdaBuildOutput = new codepipeline.Artifact('LambdaBuildOutput');
@@ -146,16 +125,6 @@ export class PipelineStack extends Stack {
                             trigger: GitHubTrigger.POLL,
                             oauthToken: SecretValue.plainText('')
                         }),
-                    ],
-                },
-                {
-                    stageName: 'PipelineUpdate',
-                    actions: [
-                        new codepipeline_actions.CodeBuildAction({
-                            actionName: 'PipelineUpdate',
-                            input: sourceOutput,
-                            project: pipelineDeploy
-                        })
                     ],
                 },
                 {

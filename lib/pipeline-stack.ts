@@ -81,6 +81,39 @@ export class PipelineStack extends Stack {
             },
         });
 
+        const lambdaBuild2 = new codebuild.PipelineProject(this, 'LambdaBuild2', {
+            buildSpec: codebuild.BuildSpec.fromObject({
+                version: '0.2',
+                phases: {
+                    install: {
+                        commands: [
+                            'ls',
+                            'cd src/lambda/celebrities',
+                            'ls',
+                            'npm install',
+                            'ls',
+                            'cd ../../..',
+                            'ls',
+                            'cd src/lambda/celebrities',
+                        ],
+                    },
+                    build: {
+                        commands: 'npm run build',
+                    },
+                },
+                artifacts: {
+                    'base-directory': 'src/lambda/celebrities',
+                    files: [
+                        'endpoint.js',
+                        'node_modules/**/*',
+                    ],
+                },
+            }),
+            environment: {
+                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+            },
+        });
+
         const adminDeploy = new iam.Role(this, 'AdminDeploy', {
             assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com')
         })
@@ -132,6 +165,7 @@ export class PipelineStack extends Stack {
         const sourceOutput = new codepipeline.Artifact();
         const cdkBuildOutput = new codepipeline.Artifact('CdkBuildOutput');
         const lambdaBuildOutput = new codepipeline.Artifact('LambdaBuildOutput');
+        const lambdaBuildOutput2 = new codepipeline.Artifact('LambdaBuildOutput2');
 
 
         const token = secrets.Secret.fromSecretNameV2(this, "ImportedSecret", 'RobertDittmannGithubToken')
@@ -173,10 +207,10 @@ export class PipelineStack extends Stack {
                             outputs: [lambdaBuildOutput],
                         }),
                         new codepipeline_actions.CodeBuildAction({
-                            actionName: 'Lambda_Build',
-                            project: lambdaBuild,
+                            actionName: 'Lambda_Build_2',
+                            project: lambdaBuild2,
                             input: sourceOutput,
-                            outputs: [lambdaBuildOutput],
+                            outputs: [lambdaBuildOutput2],
                         }),
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'Infrastructure_Build',

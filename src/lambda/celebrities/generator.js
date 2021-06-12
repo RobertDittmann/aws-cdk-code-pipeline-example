@@ -17,10 +17,7 @@ exports.handler = async (event) => {
 
         try {
             const rawImage = await getImage(bucket, key);
-            console.log(`Loaded image`);
             const celebrityMetadata = await getCelebrityMetadata(rawImage);
-            console.log(`Recognized`);
-            console.log(`Recognition result ${JSON.stringify(celebrityMetadata)}`);
             await saveMetadata(key, celebrityMetadata);
 
             console.log(`Successfully saved metadata for ${key} image`);

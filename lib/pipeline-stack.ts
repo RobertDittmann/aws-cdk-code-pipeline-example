@@ -4,6 +4,7 @@ import {GitHubTrigger} from '@aws-cdk/aws-codepipeline-actions';
 import * as lambda from '@aws-cdk/aws-lambda';
 import {App, SecretValue, Stack, StackProps} from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as iam from '@aws-cdk/aws-iam';
 
 export interface PipelineStackProps extends StackProps {
     readonly githubToken: string;
@@ -24,17 +25,22 @@ export class PipelineStack extends Stack {
                     },
                     build: {
                         commands: [
+                            'ls',
                             'npm run build',
-                            'npm run cdk synth -- -o dist'
+                            'npm run cdk synth InfrastructureStack', // removed " -- -o dist"
+                            'ls'
                         ],
                     },
                 },
-                artifacts: {
-                    'base-directory': 'dist',
-                    files: [
-                        'InfrastructureStack.template.json',
-                    ],
-                },
+                // artifacts: {
+                //     'base-directory': 'dist',
+                //     files: [
+                //         'InfrastructureStack*',
+                //         'tree.json',
+                //         'manifest.json',
+                //         'cdk.out'
+                //     ],
+                // },
             }),
             environment: {
                 buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
@@ -47,10 +53,14 @@ export class PipelineStack extends Stack {
                 phases: {
                     install: {
                         commands: [
+                            'ls',
                             'cd src/lambda/celebrities',
                             'ls',
                             'npm install',
                             'ls',
+                            'cd ../../..',
+                            'ls',
+                            'cd src/lambda/celebrities',
                         ],
                     },
                     build: {
@@ -66,10 +76,56 @@ export class PipelineStack extends Stack {
                 },
             }),
             environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
+                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
             },
         });
 
+        const adminDeploy = new iam.Role(this, 'AdminDeploy', {
+            assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com')
+        })
+        adminDeploy.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+
+        const awsCDKDeploy = new codebuild.PipelineProject(this, 'AwsCDKDeploy', {
+            buildSpec: codebuild.BuildSpec.fromObject({
+                version: '0.2',
+                phases: {
+                    install: {
+                        commands: 'npm install',
+                    },
+                    build: {
+                        commands: [
+                            'ls',
+                            'npm run cdk deploy InfrastructureStack'
+                        ],
+                    }
+                }
+            }),
+            role: adminDeploy,
+            environment: {
+                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+            },
+        });
+
+        const pipelineDeploy = new codebuild.PipelineProject(this, 'AwsCDKPipelineDeploy', {
+            buildSpec: codebuild.BuildSpec.fromObject({
+                version: '0.2',
+                phases: {
+                    install: {
+                        commands: 'npm install',
+                    },
+                    build: {
+                        commands: [
+                            'ls',
+                            'npm run cdk deploy PipelineStack'
+                        ],
+                    }
+                }
+            }),
+            role: adminDeploy,
+            environment: {
+                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+            },
+        });
 
         const sourceOutput = new codepipeline.Artifact();
         const cdkBuildOutput = new codepipeline.Artifact('CdkBuildOutput');
@@ -96,6 +152,12 @@ export class PipelineStack extends Stack {
                     stageName: 'Build',
                     actions: [
                         new codepipeline_actions.CodeBuildAction({
+                            actionName: 'Infrastructure_AWS_CDK_Deploy',
+                            input: sourceOutput,
+                            project: pipelineDeploy
+                        }),
+
+                        new codepipeline_actions.CodeBuildAction({
                             actionName: 'Lambda_Build',
                             project: lambdaBuild,
                             input: sourceOutput,
@@ -112,16 +174,22 @@ export class PipelineStack extends Stack {
                 {
                     stageName: 'Deploy',
                     actions: [
-                        new codepipeline_actions.CloudFormationCreateUpdateStackAction({
-                            actionName: 'Infrastructure_CFN_Deploy',
-                            templatePath: cdkBuildOutput.atPath('InfrastructureStack.template.json'),
-                            stackName: 'InfrastructureDeploymentStack',
-                            adminPermissions: true,
-                            // parameterOverrides: {
-                            //     ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
-                            // }, // COMMENT OUT TO CHECK
-                            extraInputs: [lambdaBuildOutput],
-                        }),
+                        // new codepipeline_actions.CloudFormationCreateUpdateStackAction({
+                        //     actionName: 'Infrastructure_CFN_Deploy',
+                        //     templatePath: cdkBuildOutput.atPath('InfrastructureStack.template.json'),
+                        //     stackName: 'InfrastructureDeploymentStack',
+                        //     adminPermissions: true,
+                        //     // parameterOverrides: {
+                        //     //     ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
+                        //     // }, // COMMENT OUT TO CHECK
+                        //     extraInputs: [lambdaBuildOutput],
+                        // }),
+
+                        new codepipeline_actions.CodeBuildAction({
+                            actionName: 'PipelineUpdate',
+                            input: sourceOutput,
+                            project: awsCDKDeploy
+                        })
                     ],
                 },
             ],

@@ -149,14 +149,18 @@ export class PipelineStack extends Stack {
                     ],
                 },
                 {
-                    stageName: 'Build',
+                    stageName: 'PipelineUpdate',
                     actions: [
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'PipelineUpdate',
                             input: sourceOutput,
                             project: pipelineDeploy
-                        }),
-
+                        })
+                    ],
+                },
+                {
+                    stageName: 'Build',
+                    actions: [
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'Lambda_Build',
                             project: lambdaBuild,

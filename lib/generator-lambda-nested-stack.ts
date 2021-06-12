@@ -43,19 +43,19 @@ export class GeneratorLambdaNestedStack extends cdk.NestedStack {
             ],
             resources: ['*']
         }));
-
-        lambda.addToRolePolicy(new IAM.PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: [
-                's3:GetObject*',
-                's3:GetBucket*',
-                's3:List*'
-            ],
-            resources: [
-                `arn:aws:s3:::${props.bucket.bucketName}`,
-                `arn:aws:s3:::${props.bucket.bucketName}/*`
-            ]
-        }));
+        //
+        // lambda.addToRolePolicy(new IAM.PolicyStatement({
+        //     effect: Effect.ALLOW,
+        //     actions: [
+        //         's3:GetObject*',
+        //         's3:GetBucket*',
+        //         's3:List*'
+        //     ],
+        //     resources: [
+        //         `arn:aws:s3:::${props.bucket.bucketName}`,
+        //         `arn:aws:s3:::${props.bucket.bucketName}/*`
+        //     ]
+        // }));
 
         // props.bucket.grantRead(lambda); // circular so not working in here
 

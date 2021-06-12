@@ -144,7 +144,7 @@ export class PipelineStack extends Stack {
                             actionName: 'PULL_SOURCE',
                             output: sourceOutput,
                             trigger: GitHubTrigger.POLL,
-                            oauthToken: SecretValue.plainText('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')
+                            oauthToken: SecretValue.plainText('')
                         }),
                     ],
                 },

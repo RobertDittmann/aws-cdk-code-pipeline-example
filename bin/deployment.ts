@@ -5,7 +5,7 @@ import {InfrastructureStack} from '../lib/infrastructure-stack';
 import {PipelineStack} from '../lib/pipeline-stack';
 
 const REPO_TOKEN = process.env.GITHUB_TOKEN ? process.env.GITHUB_TOKEN : '';
-const STACK_NAME = 'robertdittmann';
+const STACK_NAME = 'test';
 
 if (!REPO_TOKEN) {
     console.log("No Github Token present");

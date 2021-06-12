@@ -5,6 +5,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import {App, SecretValue, Stack, StackProps} from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
+import * as secrets from '@aws-cdk/aws-secretsmanager';
 
 export interface PipelineStackProps extends StackProps {
     readonly githubToken: string;
@@ -111,19 +112,22 @@ export class PipelineStack extends Stack {
         const lambdaBuildOutput = new codepipeline.Artifact('LambdaBuildOutput');
 
 
+        const token = secrets.Secret.fromSecretNameV2(this, "ImportedSecret", 'RobertDittmannGithubToken')
+            .secretValue.toString();
+
         new codepipeline.Pipeline(this, 'Pipeline', {
             stages: [
                 {
                     stageName: 'Source',
                     actions: [
                         new codepipeline_actions.GitHubSourceAction({
-                           owner: 'RobertDittmann',
+                            owner: 'RobertDittmann',
                             repo: 'aws-cdk-code-pipeline-example',
                             branch: 'master',
                             actionName: 'PULL_SOURCE',
                             output: sourceOutput,
                             trigger: GitHubTrigger.POLL,
-                            oauthToken: SecretValue.plainText('')
+                            oauthToken: SecretValue.plainText(token)
                         }),
                     ],
                 },

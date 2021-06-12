@@ -144,7 +144,7 @@ export class PipelineStack extends Stack {
                             actionName: 'PULL_SOURCE',
                             output: sourceOutput,
                             trigger: GitHubTrigger.POLL,
-                            oauthToken: SecretValue.secretsManager('arn:aws:secretsmanager:eu-west-1:876101868435:secret:RobertDittmannGithubRepoToken-G17pJB')
+                            oauthToken: SecretValue.plainText('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')
                         }),
                     ],
                 },
@@ -152,7 +152,7 @@ export class PipelineStack extends Stack {
                     stageName: 'Build',
                     actions: [
                         new codepipeline_actions.CodeBuildAction({
-                            actionName: 'Infrastructure_AWS_CDK_Deploy',
+                            actionName: 'PipelineUpdate',
                             input: sourceOutput,
                             project: pipelineDeploy
                         }),
@@ -186,7 +186,7 @@ export class PipelineStack extends Stack {
                         // }),
 
                         new codepipeline_actions.CodeBuildAction({
-                            actionName: 'PipelineUpdate',
+                            actionName: 'Infrastructure_AWS_CDK_Deploy',
                             input: sourceOutput,
                             project: awsCDKDeploy
                         })

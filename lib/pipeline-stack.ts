@@ -262,7 +262,8 @@ export class PipelineStack extends Stack {
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'Infrastructure_AWS_CDK_Deploy',
                             input: sourceOutput,
-                            project: awsCDKDeploy
+                            project: awsCDKDeploy,
+                            environmentVariables: {ENV_NAME: {value: props.envName}}
                         })
                     ],
                 },

@@ -22,6 +22,16 @@ export class PipelineStack extends Stack {
             stackName: stackName,
             ...props});
 
+        const adminRoleForCodeBuild = new iam.Role(this, `AdminCodeBuildRole`, {
+            assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com')
+        })
+        adminRoleForCodeBuild.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+
+        const adminRoleForCodePipeline = new iam.Role(this, `AdminCodePipelineRole`, {
+            assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com')
+        })
+        adminRoleForCodePipeline.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+
         const pipelineArtifactsBucket = new S3.Bucket(this, `pipeline-artifacts`, {
             encryption: BucketEncryption.S3_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -77,6 +87,7 @@ export class PipelineStack extends Stack {
                 //     ],
                 // },
             }),
+            role: adminRoleForCodeBuild,
             environment: {
                 buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
             },
@@ -148,15 +159,7 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const adminRoleForCodeBuild = new iam.Role(this, `AdminCodeBuildRole`, {
-            assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com')
-        })
-        adminRoleForCodeBuild.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
 
-        const adminRoleForCodePipeline = new iam.Role(this, `AdminCodePipelineRole`, {
-            assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com')
-        })
-        adminRoleForCodePipeline.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
 
         const awsCDKDeploy = new codebuild.PipelineProject(this, `InfrastructureDeploy`, {
             buildSpec: codebuild.BuildSpec.fromObject({
@@ -215,7 +218,7 @@ export class PipelineStack extends Stack {
                             actionName: 'Pipeline_Build',
                             project: pipelineTemplateBuild,
                             input: sourceOutput,
-                            // outputs: [pipelineBuildOutput],
+                            outputs: [pipelineBuildOutput],
                             environmentVariables: {ENV_NAME: {value: props.envName}}
                         }),
                     ],

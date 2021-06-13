@@ -10,6 +10,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 export interface PipelineStackProps extends StackProps {
     readonly githubToken: string;
     readonly stackName: string;
+    readonly envName: string;
     readonly lambdaCode: lambda.CfnParametersCode;
 }
 
@@ -203,6 +204,7 @@ export class PipelineStack extends Stack {
                             project: pipelineTemplateBuild,
                             input: sourceOutput,
                             outputs: [pipelineBuildOutput],
+                            environmentVariables: {ENV_NAME: {value: props.envName}}
                         }),
                     ],
                 },

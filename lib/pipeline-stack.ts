@@ -9,14 +9,16 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 
 export interface PipelineStackProps extends StackProps {
     readonly githubToken: string;
-    readonly stackName: string;
     readonly envName: string;
     readonly lambdaCode: lambda.CfnParametersCode;
 }
 
 export class PipelineStack extends Stack {
     constructor(app: App, id: string, props: PipelineStackProps) {
-        super(app, id, props);
+        const stackName = props.envName + '-pipeline'
+        super(app, id, {
+            stackName: stackName,
+            ...props});
 
         const cdkBuild = new codebuild.PipelineProject(this, 'CdkBuild', {
             buildSpec: codebuild.BuildSpec.fromObject({
@@ -214,7 +216,7 @@ export class PipelineStack extends Stack {
                         new codepipeline_actions.CloudFormationCreateUpdateStackAction({
                             actionName: 'Pipeline_UPDATE',
                             templatePath: pipelineBuildOutput.atPath('PipelineStack.template.json'),
-                            stackName: props.stackName,
+                            stackName: stackName,
                             adminPermissions: true,
                         }),
                     ],

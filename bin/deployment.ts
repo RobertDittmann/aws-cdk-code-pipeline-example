@@ -16,12 +16,11 @@ const app = new cdk.App();
 const ENV_NAME = process.env.ENV_NAME ? process.env.ENV_NAME : '';
 
 const infrastructure = new InfrastructureStack(app, `InfrastructureStack`, {
-    stackName: ENV_NAME + '-infra',
+    envName: ENV_NAME,
 });
 
 new PipelineStack(app, 'PipelineStack', {
     githubToken: REPO_TOKEN,
-    stackName: ENV_NAME + '-pipeline',
     envName: ENV_NAME,
     lambdaCode: infrastructure.lambdaCode
 });

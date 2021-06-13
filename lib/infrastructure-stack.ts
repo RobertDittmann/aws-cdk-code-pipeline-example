@@ -7,32 +7,35 @@ import {AgwNestedStack} from "./agw-nested-stack";
 import * as lambda from '@aws-cdk/aws-lambda';
 
 export interface InfrastructureStackProps extends NestedStackProps {
-    readonly stackName: string;
+    readonly envName: string;
 }
 
 export class InfrastructureStack extends Stack {
     public readonly lambdaCode: lambda.CfnParametersCode;
 
     constructor(app: Construct, id: string, props: InfrastructureStackProps) {
-        super(app, id, props);
+        const stackName = props.envName + '-infra'
+        super(app, id, {
+            stackName: stackName,
+            ...props});
 
         const s3Stack = new S3BucketNestedStack(this, `ImagesS3Bucket`, {
-            stackName: props.stackName
+            stackName: stackName
         });
 
         const dynamodbStack = new DynamodbNestedStack(this, `ImagesRekoginitionResults`, {
-            stackName: props.stackName,
+            stackName: stackName,
         });
 
         const endpointLambdaStack = new EndpointLambdaNestedStack(this, `EndpointLambda`, {
-            stackName: props.stackName,
+            stackName: stackName,
             table: dynamodbStack.table
         });
 
         this.lambdaCode = endpointLambdaStack.lambdaCode;
 
         const generatorLambdaStack = new GeneratorLambdaNestedStack(this, `GeneratorLambda`, {
-            stackName: props.stackName,
+            stackName: stackName,
             table: dynamodbStack.table,
             bucket: s3Stack.bucket,
         });
@@ -44,7 +47,7 @@ export class InfrastructureStack extends Stack {
 
         new AgwNestedStack(this, `Agw`, {
             endpointLambdaIFunction: endpointLambdaStack.endpointLambdaIFunction,
-            stackName: props.stackName,
+            stackName: stackName,
         });
 
     }

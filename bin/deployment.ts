@@ -12,14 +12,16 @@ if (!REPO_TOKEN) {
 }
 
 const app = new cdk.App();
-const infrastructure = new InfrastructureStack(app, `InfrastructureStack`, {
-    stackName: STACK_NAME+ '-infra',
 
+const ENV_NAME = app.node.tryGetContext('ENV_NAME')
+
+const infrastructure = new InfrastructureStack(app, `InfrastructureStack`, {
+    stackName: ENV_NAME + '-infra',
 });
 
 new PipelineStack(app, 'PipelineStack', {
     githubToken: REPO_TOKEN,
-    stackName: STACK_NAME + '-pipeline',
+    stackName: ENV_NAME + '-pipeline',
     lambdaCode: infrastructure.lambdaCode
 });
 

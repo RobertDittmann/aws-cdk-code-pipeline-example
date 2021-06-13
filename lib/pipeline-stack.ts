@@ -223,7 +223,7 @@ export class PipelineStack extends Stack {
                     actions: [
                         new codepipeline_actions.CloudFormationCreateUpdateStackAction({
                             actionName: 'Pipeline_UPDATE',
-                            templatePath: pipelineBuildOutput.atPath('Pipeline.template.json'),
+                            templatePath: pipelineBuildOutput.atPath(`${props.envName}-Pipeline.template.json`),
                             stackName: stackName,
                             adminPermissions: true
                         }),

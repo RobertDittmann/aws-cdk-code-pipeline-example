@@ -239,6 +239,7 @@ export class PipelineStack extends Stack {
                             project: cdkBuild,
                             input: sourceOutput,
                             outputs: [cdkBuildOutput],
+                            environmentVariables: {ENV_NAME: {value: props.envName}}
                         }),
                     ],
                 },

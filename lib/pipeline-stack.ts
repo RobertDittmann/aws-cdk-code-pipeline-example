@@ -75,6 +75,7 @@ export class PipelineStack extends Stack {
                             'npm run build',
                             `npm run cdk synth Pipeline`, // removed " -- -o dist"
                             'ls',
+                            'npm run cdk deploy --help',
                             `npm run cdk deploy Pipeline`, // --require-approval  never
                             'ls'
                         ],

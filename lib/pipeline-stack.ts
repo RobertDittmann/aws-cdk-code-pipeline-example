@@ -182,7 +182,7 @@ export class PipelineStack extends Stack {
         const token = secrets.Secret.fromSecretNameV2(this, "ImportedSecret", 'RobertDittmannGithubToken')
             .secretValue.toString();
 
-        new codepipeline.Pipeline(this, 'Pipeline', {
+        new codepipeline.Pipeline(this, `${stackName}-Pipeline`, {
             pipelineName: `${props.envName}-Pipeline`,
             stages: [
                 {

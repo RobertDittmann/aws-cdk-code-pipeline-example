@@ -63,18 +63,18 @@ export class PipelineStack extends Stack {
                         commands: [
                             'ls',
                             'npm run build',
-                            `npm run cdk synth Pipeline -- -o pipeline_template`, // removed " -- -o dist"
+                            `npm run cdk synth Pipeline`, // removed " -- -o dist"
                             `npm run cdk deploy Pipeline --require-approval  never`, // --require-approval  never
                             'ls'
                         ],
                     },
                 },
-                artifacts: {
-                    'base-directory': 'pipeline_template',
-                    files: [
-                        `Pipeline*`
-                    ],
-                },
+                // artifacts: {
+                //     'base-directory': 'pipeline_template',
+                //     files: [
+                //         `Pipeline*`
+                //     ],
+                // },
             }),
             environment: {
                 buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
@@ -214,7 +214,7 @@ export class PipelineStack extends Stack {
                             actionName: 'Pipeline_Build',
                             project: pipelineTemplateBuild,
                             input: sourceOutput,
-                            outputs: [pipelineBuildOutput],
+                            // outputs: [pipelineBuildOutput],
                             environmentVariables: {ENV_NAME: {value: props.envName}}
                         }),
                     ],

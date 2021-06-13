@@ -14,11 +14,11 @@ if (!ENV_NAME) {
     throw new Error("No ENV_NAME present");
 }
 
-const infrastructure = new InfrastructureStack(app, `${ENV_NAME}-Infrastructure`, {
+const infrastructure = new InfrastructureStack(app, `Infrastructure`, {
     envName: ENV_NAME,
 });
 
-new PipelineStack(app, `${ENV_NAME}-Pipeline`, {
+new PipelineStack(app, `Pipeline`, {
     envName: ENV_NAME,
     lambdaCode: infrastructure.lambdaCode
 });

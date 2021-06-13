@@ -40,7 +40,7 @@ export class PipelineStack extends Stack {
                         commands: [
                             'ls',
                             'npm run build',
-                            `npm run cdk synth ${props.envName}-Infrastructure`, // removed " -- -o dist"
+                            `npm run cdk synth Infrastructure`, // removed " -- -o dist"
                             'ls'
                         ],
                     },
@@ -63,7 +63,7 @@ export class PipelineStack extends Stack {
                         commands: [
                             'ls',
                             'npm run build',
-                            `npm run cdk synth ${props.envName}-Pipeline -- -o pipeline_template`, // removed " -- -o dist"
+                            `npm run cdk synth Pipeline -- -o pipeline_template`, // removed " -- -o dist"
                             'ls'
                         ],
                     },
@@ -71,7 +71,7 @@ export class PipelineStack extends Stack {
                 artifacts: {
                     'base-directory': 'pipeline_template',
                     files: [
-                        `${props.envName}-Pipeline*`
+                        `Pipeline*`
                     ],
                 },
             }),
@@ -166,7 +166,7 @@ export class PipelineStack extends Stack {
                     build: {
                         commands: [
                             'ls',
-                            `npm run cdk deploy ${props.envName}-Infrastructure`
+                            `npm run cdk deploy Infrastructure`
                         ],
                     }
                 }
@@ -207,7 +207,7 @@ export class PipelineStack extends Stack {
                     ],
                 },
                 {
-                    stageName: 'Pipeline_build',
+                    stageName: 'Pipeline_build_Update',
                     actions: [
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'Pipeline_Build',
@@ -223,7 +223,7 @@ export class PipelineStack extends Stack {
                     actions: [
                         new codepipeline_actions.CloudFormationCreateUpdateStackAction({
                             actionName: 'Pipeline_UPDATE',
-                            templatePath: pipelineBuildOutput.atPath(`${props.envName}-Pipeline.template.json`),
+                            templatePath: pipelineBuildOutput.atPath(`Pipeline.template.json`),
                             stackName: stackName,
                             adminPermissions: true
                         }),

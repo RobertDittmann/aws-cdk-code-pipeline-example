@@ -230,12 +230,12 @@ export class PipelineStack extends Stack {
                             input: sourceOutput,
                             outputs: [lambdaBuildOutput],
                         }),
-                        new codepipeline_actions.CodeBuildAction({
-                            actionName: 'Lambda_Build_2',
-                            project: lambdaBuild2,
-                            input: sourceOutput,
-                            outputs: [lambdaBuildOutput2],
-                        }),
+                        // new codepipeline_actions.CodeBuildAction({
+                        //     actionName: 'Lambda_Build_2',
+                        //     project: lambdaBuild2,
+                        //     input: sourceOutput,
+                        //     outputs: [lambdaBuildOutput2],
+                        // }),
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'Infrastructure_Build',
                             project: cdkBuild,

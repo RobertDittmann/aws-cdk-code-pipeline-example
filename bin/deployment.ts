@@ -4,23 +4,21 @@ import * as cdk from '@aws-cdk/core';
 import {InfrastructureStack} from '../lib/infrastructure-stack';
 import {PipelineStack} from '../lib/pipeline-stack';
 
-const REPO_TOKEN = process.env.GITHUB_TOKEN ? process.env.GITHUB_TOKEN : '';
-const STACK_NAME = 'test';
 
-if (!REPO_TOKEN) {
-    console.log("No Github Token present");
-}
+const ENV_NAME = process.env.ENV_NAME ? process.env.ENV_NAME.toLowerCase() : '';
 
 const app = new cdk.App();
 
-const ENV_NAME = process.env.ENV_NAME ? process.env.ENV_NAME : '';
+if (!ENV_NAME) {
+    console.error("No ENV_NAME present");
+    throw new Error("No ENV_NAME present");
+}
 
-const infrastructure = new InfrastructureStack(app, `InfrastructureStack`, {
+const infrastructure = new InfrastructureStack(app, `${ENV_NAME}-Infrastructure`, {
     envName: ENV_NAME,
 });
 
-new PipelineStack(app, 'PipelineStack', {
-    githubToken: REPO_TOKEN,
+new PipelineStack(app, `${ENV_NAME}-Pipeline`, {
     envName: ENV_NAME,
     lambdaCode: infrastructure.lambdaCode
 });

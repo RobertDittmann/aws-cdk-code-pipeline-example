@@ -6,9 +6,11 @@ import {App, SecretValue, Stack, StackProps} from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
+import * as S3 from "@aws-cdk/aws-s3";
+import {BucketEncryption} from "@aws-cdk/aws-s3";
+import * as cdk from "@aws-cdk/core";
 
 export interface PipelineStackProps extends StackProps {
-    readonly githubToken: string;
     readonly envName: string;
     readonly lambdaCode: lambda.CfnParametersCode;
 }
@@ -20,7 +22,14 @@ export class PipelineStack extends Stack {
             stackName: stackName,
             ...props});
 
-        const cdkBuild = new codebuild.PipelineProject(this, 'CdkBuild', {
+        const pipelineArtifactsBucket = new S3.Bucket(this, `${props.envName}-pipeline-artifacts`, {
+            encryption: BucketEncryption.S3_MANAGED,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+            bucketName: `${props.envName}-pipeline-artifacts`,
+            autoDeleteObjects: true
+        });
+
+        const cdkBuild = new codebuild.PipelineProject(this, `${props.envName}-InfrastructureBuild`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -31,20 +40,11 @@ export class PipelineStack extends Stack {
                         commands: [
                             'ls',
                             'npm run build',
-                            'npm run cdk synth InfrastructureStack', // removed " -- -o dist"
+                            `npm run cdk synth ${props.envName}-Infrastructure`, // removed " -- -o dist"
                             'ls'
                         ],
                     },
                 },
-                // artifacts: {
-                //     'base-directory': 'dist',
-                //     files: [
-                //         'InfrastructureStack*',
-                //         'tree.json',
-                //         'manifest.json',
-                //         'cdk.out'
-                //     ],
-                // },
             }),
             environment: {
                 buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
@@ -52,7 +52,7 @@ export class PipelineStack extends Stack {
         });
 
 
-        const pipelineTemplateBuild = new codebuild.PipelineProject(this, 'pipelineTemplateBuild', {
+        const pipelineTemplateBuild = new codebuild.PipelineProject(this, `${props.envName}-PipelineBuild`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -63,7 +63,7 @@ export class PipelineStack extends Stack {
                         commands: [
                             'ls',
                             'npm run build',
-                            'npm run cdk synth PipelineStack -- -o pipeline_template', // removed " -- -o dist"
+                            `npm run cdk synth ${props.envName}-Pipeline -- -o pipeline_template`, // removed " -- -o dist"
                             'ls'
                         ],
                     },
@@ -71,7 +71,7 @@ export class PipelineStack extends Stack {
                 artifacts: {
                     'base-directory': 'pipeline_template',
                     files: [
-                        'PipelineStack*'
+                        `${props.envName}-Pipeline*`
                     ],
                 },
             }),
@@ -80,7 +80,7 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const lambdaBuild = new codebuild.PipelineProject(this, 'LambdaBuild', {
+        const lambdaBuild = new codebuild.PipelineProject(this, `${props.envName}-EndpointLambdaBuild`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -113,7 +113,7 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const lambdaBuild2 = new codebuild.PipelineProject(this, 'LambdaBuild2', {
+        const lambdaBuild2 = new codebuild.PipelineProject(this, `${props.envName}-LambdaBuild2`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -146,12 +146,17 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const adminDeploy = new iam.Role(this, 'AdminDeploy', {
+        const adminRoleForCodeBuild = new iam.Role(this, `${props.envName}-AdminCodeBuildRole`, {
             assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com')
         })
-        adminDeploy.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+        adminRoleForCodeBuild.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
 
-        const awsCDKDeploy = new codebuild.PipelineProject(this, 'AwsCDKDeploy', {
+        const adminRoleForCodePipeline = new iam.Role(this, `${props.envName}-AdminCodePipelineRole`, {
+            assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com')
+        })
+        adminRoleForCodePipeline.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
+
+        const awsCDKDeploy = new codebuild.PipelineProject(this, `${props.envName}-InfrastructureDeploy`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -161,12 +166,12 @@ export class PipelineStack extends Stack {
                     build: {
                         commands: [
                             'ls',
-                            'npm run cdk deploy InfrastructureStack'
+                            `npm run cdk deploy ${props.envName}-Infrastructure`
                         ],
                     }
                 }
             }),
-            role: adminDeploy,
+            role: adminRoleForCodeBuild,
             environment: {
                 buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
             },
@@ -179,11 +184,13 @@ export class PipelineStack extends Stack {
         const pipelineBuildOutput = new codepipeline.Artifact(`${props.envName}-PipelineBuildOutput`);
 
 
-        const token = secrets.Secret.fromSecretNameV2(this, "ImportedSecret", 'RobertDittmannGithubToken')
+        const token = secrets.Secret.fromSecretNameV2(this, `${props.envName}-ImportedSecret`, 'RobertDittmannGithubToken')
             .secretValue.toString();
 
-        new codepipeline.Pipeline(this, `${stackName}-Pipeline`, {
+        new codepipeline.Pipeline(this, `${props.envName}-Pipeline`, {
             pipelineName: `${props.envName}-Pipeline`,
+            artifactBucket: pipelineArtifactsBucket,
+            role: adminRoleForCodePipeline,
             stages: [
                 {
                     stageName: 'Source',
@@ -212,13 +219,13 @@ export class PipelineStack extends Stack {
                     ],
                 },
                 {
-                    stageName: 'Pipeline_UPDATE',
+                    stageName: 'Pipeline_Update',
                     actions: [
                         new codepipeline_actions.CloudFormationCreateUpdateStackAction({
                             actionName: 'Pipeline_UPDATE',
-                            templatePath: pipelineBuildOutput.atPath('PipelineStack.template.json'),
+                            templatePath: pipelineBuildOutput.atPath('Pipeline.template.json'),
                             stackName: stackName,
-                            adminPermissions: true,
+                            adminPermissions: true
                         }),
                     ],
                 },
@@ -251,7 +258,7 @@ export class PipelineStack extends Stack {
                     actions: [
                         // new codepipeline_actions.CloudFormationCreateUpdateStackAction({
                         //     actionName: 'Infrastructure_CFN_Deploy',
-                        //     templatePath: cdkBuildOutput.atPath('InfrastructureStack.template.json'),
+                        //     templatePath: cdkBuildOutput.atPath('Infrastructure.template.json'),
                         //     stackName: 'InfrastructureDeploymentStack',
                         //     adminPermissions: true,
                         //     // parameterOverrides: {

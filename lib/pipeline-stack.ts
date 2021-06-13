@@ -172,17 +172,18 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const sourceOutput = new codepipeline.Artifact();
-        const cdkBuildOutput = new codepipeline.Artifact('CdkBuildOutput');
-        const lambdaBuildOutput = new codepipeline.Artifact('LambdaBuildOutput');
-        const lambdaBuildOutput2 = new codepipeline.Artifact('LambdaBuildOutput2');
-        const pipelineBuildOutput = new codepipeline.Artifact('PipelineBuildOutput');
+        const sourceOutput = new codepipeline.Artifact(`${props.envName}-Source`);
+        const cdkBuildOutput = new codepipeline.Artifact(`${props.envName}-CdkBuildOutput`);
+        const lambdaBuildOutput = new codepipeline.Artifact(`${props.envName}-LambdaBuildOutput`);
+        const lambdaBuildOutput2 = new codepipeline.Artifact(`${props.envName}-LambdaBuildOutput2`);
+        const pipelineBuildOutput = new codepipeline.Artifact(`${props.envName}-PipelineBuildOutput`);
 
 
         const token = secrets.Secret.fromSecretNameV2(this, "ImportedSecret", 'RobertDittmannGithubToken')
             .secretValue.toString();
 
         new codepipeline.Pipeline(this, 'Pipeline', {
+            pipelineName: `${props.envName}-Pipeline`,
             stages: [
                 {
                     stageName: 'Source',

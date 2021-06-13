@@ -22,14 +22,14 @@ export class PipelineStack extends Stack {
             stackName: stackName,
             ...props});
 
-        const pipelineArtifactsBucket = new S3.Bucket(this, `${props.envName}-pipeline-artifacts`, {
+        const pipelineArtifactsBucket = new S3.Bucket(this, `pipeline-artifacts`, {
             encryption: BucketEncryption.S3_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             bucketName: `${props.envName}-pipeline-artifacts`,
             autoDeleteObjects: true
         });
 
-        const cdkBuild = new codebuild.PipelineProject(this, `${props.envName}-InfrastructureBuild`, {
+        const cdkBuild = new codebuild.PipelineProject(this, `InfrastructureBuild`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -52,7 +52,7 @@ export class PipelineStack extends Stack {
         });
 
 
-        const pipelineTemplateBuild = new codebuild.PipelineProject(this, `${props.envName}-PipelineBuild`, {
+        const pipelineTemplateBuild = new codebuild.PipelineProject(this, `PipelineBuild`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -80,7 +80,7 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const lambdaBuild = new codebuild.PipelineProject(this, `${props.envName}-EndpointLambdaBuild`, {
+        const lambdaBuild = new codebuild.PipelineProject(this, `EndpointLambdaBuild`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -113,7 +113,7 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const lambdaBuild2 = new codebuild.PipelineProject(this, `${props.envName}-LambdaBuild2`, {
+        const lambdaBuild2 = new codebuild.PipelineProject(this, `LambdaBuild2`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -146,17 +146,17 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const adminRoleForCodeBuild = new iam.Role(this, `${props.envName}-AdminCodeBuildRole`, {
+        const adminRoleForCodeBuild = new iam.Role(this, `AdminCodeBuildRole`, {
             assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com')
         })
         adminRoleForCodeBuild.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
 
-        const adminRoleForCodePipeline = new iam.Role(this, `${props.envName}-AdminCodePipelineRole`, {
+        const adminRoleForCodePipeline = new iam.Role(this, `AdminCodePipelineRole`, {
             assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com')
         })
         adminRoleForCodePipeline.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'));
 
-        const awsCDKDeploy = new codebuild.PipelineProject(this, `${props.envName}-InfrastructureDeploy`, {
+        const awsCDKDeploy = new codebuild.PipelineProject(this, `InfrastructureDeploy`, {
             buildSpec: codebuild.BuildSpec.fromObject({
                 version: '0.2',
                 phases: {
@@ -177,17 +177,17 @@ export class PipelineStack extends Stack {
             },
         });
 
-        const sourceOutput = new codepipeline.Artifact(`${props.envName}-Source`);
-        const cdkBuildOutput = new codepipeline.Artifact(`${props.envName}-CdkBuildOutput`);
-        const lambdaBuildOutput = new codepipeline.Artifact(`${props.envName}-LambdaBuildOutput`);
-        const lambdaBuildOutput2 = new codepipeline.Artifact(`${props.envName}-LambdaBuildOutput2`);
-        const pipelineBuildOutput = new codepipeline.Artifact(`${props.envName}-PipelineBuildOutput`);
+        const sourceOutput = new codepipeline.Artifact(`Source`);
+        const cdkBuildOutput = new codepipeline.Artifact(`CdkBuildOutput`);
+        const lambdaBuildOutput = new codepipeline.Artifact(`LambdaBuildOutput`);
+        const lambdaBuildOutput2 = new codepipeline.Artifact(`LambdaBuildOutput2`);
+        const pipelineBuildOutput = new codepipeline.Artifact(`PipelineBuildOutput`);
 
 
-        const token = secrets.Secret.fromSecretNameV2(this, `${props.envName}-ImportedSecret`, 'RobertDittmannGithubToken')
+        const token = secrets.Secret.fromSecretNameV2(this, `ImportedSecret`, 'RobertDittmannGithubToken')
             .secretValue.toString();
 
-        new codepipeline.Pipeline(this, `${props.envName}-Pipeline`, {
+        new codepipeline.Pipeline(this, `Pipeline`, {
             pipelineName: `${props.envName}-Pipeline`,
             artifactBucket: pipelineArtifactsBucket,
             role: adminRoleForCodePipeline,

@@ -64,6 +64,7 @@ export class PipelineStack extends Stack {
                             'ls',
                             'npm run build',
                             `npm run cdk synth Pipeline -- -o pipeline_template`, // removed " -- -o dist"
+                            `npm run cdk deploy Pipeline`, // removed " -- -o dist"
                             'ls'
                         ],
                     },
@@ -207,7 +208,7 @@ export class PipelineStack extends Stack {
                     ],
                 },
                 {
-                    stageName: 'Pipeline_Build',
+                    stageName: 'Pipeline_Build_Update',
                     actions: [
                         new codepipeline_actions.CodeBuildAction({
                             actionName: 'Pipeline_Build',
@@ -218,17 +219,17 @@ export class PipelineStack extends Stack {
                         }),
                     ],
                 },
-                {
-                    stageName: 'Pipeline_Update',
-                    actions: [
-                        new codepipeline_actions.CloudFormationCreateUpdateStackAction({
-                            actionName: 'Pipeline_UPDATE',
-                            templatePath: pipelineBuildOutput.atPath(`Pipeline.template.json`),
-                            stackName: stackName,
-                            adminPermissions: true
-                        }),
-                    ],
-                },
+                // {
+                //     stageName: 'Pipeline_Update',
+                //     actions: [
+                //         new codepipeline_actions.CloudFormationCreateUpdateStackAction({
+                //             actionName: 'Pipeline_UPDATE',
+                //             templatePath: pipelineBuildOutput.atPath(`Pipeline.template.json`),
+                //             stackName: stackName,
+                //             adminPermissions: true
+                //         }),
+                //     ],
+                // },
                 {
                     stageName: 'Build',
                     actions: [

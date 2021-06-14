@@ -90,8 +90,8 @@ export class PipelineStack extends Stack {
             }),
             role: adminRoleForCodeBuild,
             environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
-            },
+                buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
+            }
         });
 
         const lambdaBuild = new codebuild.PipelineProject(this, `EndpointLambdaBuild`, {

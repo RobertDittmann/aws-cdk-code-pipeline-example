@@ -9,6 +9,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as S3 from "@aws-cdk/aws-s3";
 import {BucketEncryption} from "@aws-cdk/aws-s3";
 import * as cdk from "@aws-cdk/core";
+import {LifecycleRule} from "@aws-cdk/aws-s3/lib/rule";
 
 export interface PipelineStackProps extends StackProps {
     readonly envName: string;
@@ -36,7 +37,8 @@ export class PipelineStack extends Stack {
             encryption: BucketEncryption.S3_MANAGED,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             bucketName: `${props.envName}-pipeline-artifacts`,
-            autoDeleteObjects: true
+            autoDeleteObjects: true,
+            // lifecycleRules: [] // CAN BE IMPORTANT
         });
 
         const cdkBuild = new codebuild.PipelineProject(this, `InfrastructureBuild`, {

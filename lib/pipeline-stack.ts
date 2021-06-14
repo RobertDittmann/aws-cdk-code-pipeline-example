@@ -185,7 +185,7 @@ export class PipelineStack extends Stack {
         const sourceOutput = new codepipeline.Artifact(`Source`);
         const cdkBuildOutput = new codepipeline.Artifact(`CdkBuildOutput`);
         const lambdaBuildOutput = new codepipeline.Artifact(`LambdaBuildOutput`);
-        const lambdaBuildOutput2 = new codepipeline.Artifact(`LambdaBuildOutput2`);
+        const lambdaBuildOutput2 = new codepipeline.Artifact(`LaOut2`);
         const pipelineBuildOutput = new codepipeline.Artifact(`PipelineBuildOutput`);
 
 
